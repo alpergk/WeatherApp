@@ -38,7 +38,7 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
         }
         
         if manager.authorizationStatus == .notDetermined {
-            manager.requestWhenInUseAuthorization() // Triggers `locationManagerDidChangeAuthorization`
+            manager.requestWhenInUseAuthorization() // Triggers locationManagerDidChangeAuthorization
         } else {
             manager.startUpdatingLocation() // If already authorized, start updating
         }
