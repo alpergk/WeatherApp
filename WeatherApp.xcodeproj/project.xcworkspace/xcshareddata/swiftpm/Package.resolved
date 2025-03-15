@@ -1,0 +1,15 @@
+{
+  "originHash" : "6973dce9dd61e88f8dd2b9df52e3820a47774556524995808a2eafcac129364e",
+  "pins" : [
+    {
+      "identity" : "networklayer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/alpergk/NetworkLayer.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "bb03e03284a3b92cbe13290f5692511f03c6eb09"
+      }
+    }
+  ],
+  "version" : 3
+}
