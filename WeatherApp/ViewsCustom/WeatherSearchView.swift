@@ -7,13 +7,32 @@
 
 import UIKit
 
+protocol WeatherSearchViewDelegate: AnyObject {
+    func didTapSearchButton(with query: String?)
+    func didTapCurrentLocationButton()
+}
+
 class WeatherSearchView: UIView {
+    
+    weak var delegate: WeatherSearchViewDelegate?
+    static let shared = NSCache<NSString, UIImage>()
+    
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupUI()
+        setupActions()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     
     var locationLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = .label
-        //label.font = UIFont.preferredFont(forTextStyle: .caption1)
         label.font = .systemFont(ofSize: 24, weight: .bold)
         label.textAlignment = .center
         label.text = ""
@@ -48,80 +67,167 @@ class WeatherSearchView: UIView {
     
     
     let searchButton: UIButton = {
-        var config = UIButton.Configuration.filled()  // Use a filled button style
-        config.baseBackgroundColor = .systemPurple    // Button background color
-        config.baseForegroundColor = .white           // Icon color
-        config.cornerStyle = .capsule                 // Ensures it remains circular
-        config.image = UIImage(systemName: "magnifyingglass")  // Add search icon
-        config.imagePlacement = .all                  // Center the icon
-        config.buttonSize = .medium                   // Adjust button size
+        var config = UIButton.Configuration.filled()
+        config.baseBackgroundColor = .systemPurple
+        config.baseForegroundColor = .white
+        config.cornerStyle = .capsule
+        config.image = UIImage(systemName: "magnifyingglass")
+        config.imagePlacement = .all
+        config.buttonSize = .medium
         
-        let button = UIButton(configuration: config)  // Apply the configuration
+        let button = UIButton(configuration: config)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.tintColor = .white  // Ensure the icon is visible
+        button.tintColor = .white
         
         
         return button
     }()
     
     let currentLocationButton: UIButton = {
-        var config = UIButton.Configuration.filled()  // Use a filled button style
-        config.baseBackgroundColor = .systemOrange    // Button background color
-        config.baseForegroundColor = .white           // Icon color
-        config.cornerStyle = .capsule                 // Ensures it remains circular
-        config.image = UIImage(systemName: "location")  // Add search icon
-        config.imagePlacement = .all                  // Center the icon
-        config.buttonSize = .medium                   // Adjust button size
+        var config = UIButton.Configuration.filled()
+        config.baseBackgroundColor = .systemOrange
+        config.baseForegroundColor = .white
+        config.cornerStyle = .capsule
+        config.image = UIImage(systemName: "location")
+        config.imagePlacement = .all
+        config.buttonSize = .medium
         
-        let button = UIButton(configuration: config)  // Apply the configuration
+        let button = UIButton(configuration: config)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.tintColor = .white  // Ensure the icon is visible
+        button.tintColor = .white
         return button
+    }()
+    
+    private var temperatureLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = .label
+        label.font = .systemFont(ofSize: 22, weight: .bold)
+        label.textAlignment = .center
+        label.text = "-°C"
+        return label
+    }()
+    
+    private var weatherImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.tintColor = .label
+        imageView.contentMode = .scaleAspectFit
+        imageView.image = UIImage(systemName: "")
+        return imageView
+    }()
+    
+    private let weatherStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.spacing = 8
+        stackView.alignment = .center
+        stackView.distribution = .fill
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
     }()
     
     
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupSearchFieldUI()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    func setupSearchFieldUI() {
-        addSubview(searchField)
-        addSubview(searchButton)
-        addSubview(currentLocationButton)
-        addSubview(locationLabel)
+    func setupUI() {
         
+        let searchStackView = UIStackView(arrangedSubviews: [currentLocationButton,searchField, searchButton])
+        searchStackView.axis = .horizontal
+        searchStackView.spacing = 10
+        searchStackView.alignment = .center
+        searchStackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        weatherStackView.addArrangedSubview(weatherImageView)
+        weatherStackView.addArrangedSubview(temperatureLabel)
+        
+        addSubview(searchStackView)
+        addSubview(locationLabel)
+        addSubview(weatherStackView)
         
         NSLayoutConstraint.activate([
-            searchField.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
-            searchField.centerXAnchor.constraint(equalTo: centerXAnchor),
-            searchField.widthAnchor.constraint(equalToConstant: 250), // Adjust width as needed
-            searchField.heightAnchor.constraint(equalToConstant: 40),
+            searchStackView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 10),
+            searchStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            searchStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            searchStackView.heightAnchor.constraint(equalToConstant: 40),
             
-            searchButton.centerYAnchor.constraint(equalTo: searchField.centerYAnchor), // Align vertically
-            searchButton.leadingAnchor.constraint(equalTo: searchField.trailingAnchor, constant: 10), // Space between field and button
-            searchButton.widthAnchor.constraint(equalToConstant: 36), // Make it a square
-            searchButton.heightAnchor.constraint(equalToConstant: 36),
             
-            // Ensure it doesn't exceed the screen width
-            searchButton.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -20),
             
-            currentLocationButton.centerYAnchor.constraint(equalTo: searchField.centerYAnchor),
-            currentLocationButton.trailingAnchor.constraint(equalTo: searchField.leadingAnchor, constant: -10),
-            currentLocationButton.widthAnchor.constraint(equalToConstant: 36),
-            currentLocationButton.heightAnchor.constraint(equalToConstant: 36),
+            currentLocationButton.widthAnchor.constraint(equalToConstant: 30),
+            currentLocationButton.heightAnchor.constraint(equalToConstant: 30),
             
-            currentLocationButton.leadingAnchor.constraint(lessThanOrEqualTo: leadingAnchor, constant: 20),
+            searchButton.widthAnchor.constraint(equalToConstant: 30),
+            searchButton.heightAnchor.constraint(equalToConstant: 30),
             
-            locationLabel.topAnchor.constraint(equalTo: searchField.bottomAnchor, constant: 20),
+            
+            locationLabel.topAnchor.constraint(equalTo: searchStackView.bottomAnchor, constant: 20),
             locationLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            locationLabel.widthAnchor.constraint(equalToConstant: 250),
-            locationLabel.heightAnchor.constraint(equalToConstant: 40)
+            
+            weatherStackView.topAnchor.constraint(equalTo: locationLabel.bottomAnchor, constant: 10),
+            weatherStackView.centerXAnchor.constraint(equalTo: centerXAnchor)
         ])
+    }
+    
+    private func setupActions() {
+        searchButton.addTarget(self, action: #selector(searchTapped), for: .touchUpInside)
+        currentLocationButton.addTarget(self, action: #selector(locationTapped), for: .touchUpInside)
+        searchField.delegate = self
+    }
+    
+    func getCurrentTemp(with tempLabel: Double) {
+        self.temperatureLabel.text = String(format: "%.0f",  tempLabel) + "°C"
+    }
+    
+    @objc private func searchTapped() {
+        delegate?.didTapSearchButton(with: searchField.text ?? "")
+        searchField.text = ""
+    }
+    
+    
+    @objc private func locationTapped() {
+        delegate?.didTapCurrentLocationButton()
+        searchField.text = ""
+    }
+    
+    
+}
+
+extension WeatherSearchView: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        delegate?.didTapSearchButton(with: textField.text ?? "")
+        textField.text = ""
+        endEditing(true)
+        return true
+    }
+}
+
+
+// MARK: -  Image Load / Caching
+extension WeatherSearchView {
+    func loadImage(from urlString: String, placeholder: UIImage? = nil) {
+        self.weatherImageView.image = placeholder
+        let cacheKey = NSString(string: urlString)
+        if let cachedImage = WeatherSearchView.shared.object(forKey: cacheKey) {
+            weatherImageView.image = cachedImage
+            return
+        }
+        
+        guard let url = URL(string: urlString) else { return }
+        
+        let task = URLSession.shared.dataTask(with: url) { data, response , error in
+            guard let data = data, let downloadedImage = UIImage(data: data), error == nil else {
+                return
+            }
+            
+            WeatherSearchView.shared.setObject(downloadedImage, forKey: urlString as NSString)
+            
+            DispatchQueue.main.async {
+                self.weatherImageView.image = downloadedImage
+            }
+        }
+        
+        task.resume()
+        
+        
+        
     }
 }

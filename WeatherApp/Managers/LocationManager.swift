@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreLocation
+import UIKit
 
 
 final class LocationManager: NSObject, CLLocationManagerDelegate {
@@ -14,13 +15,14 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     
     static let shared = LocationManager()
     
-    private var locationFetchCompletion: ((CLLocation) -> Void)?
+    private var locationFetchHandler: ((CLLocation) -> Void)?
     
     private var location: CLLocation? {
         didSet {
-            NotificationCenter.default.post(name: NSNotification.Name("LocationUpdated"), object: nil)
             guard let location else { return }
-            locationFetchCompletion?(location)
+            NotificationCenter.default.post(name: NSNotification.Name("LocationUpdated"), object: location)
+            locationFetchHandler?(location)
+            locationFetchHandler = nil
             
         }
     }
@@ -31,16 +33,16 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     }
     
     public func getCurrentLocation(completion: @escaping (Double, Double) -> Void) {
-        self.locationFetchCompletion = { location in
+        self.locationFetchHandler = { location in
             let latitude  = location.coordinate.latitude
             let longitude = location.coordinate.longitude
             completion(latitude, longitude)
         }
         
         if manager.authorizationStatus == .notDetermined {
-            manager.requestWhenInUseAuthorization() // Triggers locationManagerDidChangeAuthorization
+            manager.requestWhenInUseAuthorization() 
         } else {
-            manager.startUpdatingLocation() // If already authorized, start updating
+            manager.startUpdatingLocation()
         }
     }
     
@@ -55,15 +57,31 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     
     // MARK: - Handle Authorization Changes
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-          switch manager.authorizationStatus {
-          case .authorizedWhenInUse, .authorizedAlways:
-              manager.startUpdatingLocation()
-          case .denied, .restricted:
-              print("Location access denied or restricted. Please enable it in Settings.")
-          default:
-              break
-          }
-      }
+        switch manager.authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            manager.requestLocation()
+        case .denied, .restricted:
+            DispatchQueue.main.async {
+                let alert = UIAlertController(
+                    title: "Location Access Denied",
+                    message: "Please enable location services in Settings to use this feature.",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "Settings", style: .default) { _ in
+                    if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                })
+                alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootViewController = windowScene.windows.first?.rootViewController {
+                    rootViewController.present(alert, animated: true)
+                }
+            }
+        default:
+            break
+        }
+    }
     
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {

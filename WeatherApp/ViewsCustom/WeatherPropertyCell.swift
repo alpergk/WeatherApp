@@ -21,15 +21,9 @@ class WeatherPropertyCell: UICollectionViewCell {
     
     private let label: UILabel = {
         let label = UILabel()
-//        label.translatesAutoresizingMaskIntoConstraints = false
-//        label.textAlignment = .center
-//        label.font = UIFont.preferredFont(forTextStyle: .title2)
-//        label.numberOfLines = 2
-//        label.textColor = .label
-//        label.adjustsFontSizeToFitWidth = true
-//        label.minimumScaleFactor = 0.9
-//        label.lineBreakMode = .byTruncatingTaillet label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.75
         label.textAlignment = .center
         label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         label.numberOfLines = 2
