@@ -27,11 +27,10 @@ class WeatherView: UIViewController {
         super.viewDidLoad()
         viewModel.delegate = self
         view.backgroundColor = .systemBackground
+        searchView.delegate = self
         setupUI()
-        setupActions()
-        searchButton.addTarget(self, action: #selector(didTapSearchButton), for: .touchUpInside)
-        currentLocationButton.addTarget(self, action: #selector(didTapCurrentLocationButton), for: .touchUpInside)
         createDismissKeyboardTapGesture()
+        
         
     }
     
@@ -45,17 +44,16 @@ class WeatherView: UIViewController {
         navigationController?.setNavigationBarHidden(false, animated: true)
     }
     
-    func setupActions() {
-        searchView.searchField.delegate = self
-    }
+    
     
     
     @objc func didTapSearchButton() {
-        guard let city = searchView.searchField.text, !city.isEmpty else {
+        guard let city = searchView.searchField.text?.trimmingCharacters(in: .whitespaces), !city.isEmpty else {
+            print("Invalid Value Entered")
             return
         }
         
-        viewModel.fetchWeather(for: city)
+        viewModel.fetchWeather(city: city)
         
         searchView.searchField.text = ""
         
@@ -63,13 +61,7 @@ class WeatherView: UIViewController {
         
     }
     
-    @objc func didTapCurrentLocationButton() {
-        LocationManager.shared.getCurrentLocation { latitude, longitude in
-            self.viewModel.fetchWeatherByCurrentLocation(latitude: "\(latitude)", longitude: "\(longitude)")
-        }
-        searchView.searchField.text = ""
-        view.endEditing(true)
-    }
+    
     
     func createDismissKeyboardTapGesture() {
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
@@ -77,19 +69,10 @@ class WeatherView: UIViewController {
     }
     
     @objc func dismissKeyboard() {
-        view.endEditing(true)  // This will dismiss the keyboard
+        view.endEditing(true)
     }
     
     
-    private var weatherProperties: [(UIImage?, String)] {
-        return [
-            (UIImage(systemName: "humidity.fill"), "Humidity\n\(viewModel.weather?.main?.humidity ?? 0)%"),
-            (UIImage(systemName: "thermometer"), "Temp\n\(viewModel.weather?.main?.temp ?? 0)°C"),
-            (UIImage(systemName: "wind"), "Wind\n\(viewModel.weather?.wind?.speed ?? 0) km/h"),
-            (UIImage(systemName: "gauge"), "Pressure\n\(viewModel.weather?.main?.pressure ?? 0) hPa"),
-            (UIImage(systemName: "cloud.rain"), "Rain\n\(viewModel.weather?.cod) mm")
-        ]
-    }
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -113,14 +96,15 @@ class WeatherView: UIViewController {
     func setupUI() {
         view.addSubview(searchView)
         view.addSubview(collectionView)
-        searchView.backgroundColor = .systemBlue
+        searchView.backgroundColor = .systemCyan
+        view.backgroundColor = .systemCyan
         
         searchView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             searchView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             searchView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             searchView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            searchView.heightAnchor.constraint(equalToConstant: 300),
+            searchView.heightAnchor.constraint(equalToConstant: 200),
             
             collectionView.topAnchor.constraint(equalTo: searchView.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -137,7 +121,17 @@ extension WeatherView: WeatherViewModelDelegate {
         guard let weatherData = viewModel.weather else { return }
         DispatchQueue.main.async {
             self.searchView.locationLabel.text = weatherData.name
+            self.collectionView.reloadData()
+            
+            if let iconName = weatherData.weather?.first?.icon {
+                let iconURL = "https://openweathermap.org/img/wn/\(iconName)@2x.png"
+                self.searchView.loadImage(from: iconURL, placeholder: UIImage(systemName: ""))
+            }
+            
+            self.searchView.getCurrentTemp(with: weatherData.main?.temp?.rounded(FloatingPointRoundingRule.toNearestOrAwayFromZero) ?? 0)
         }
+        
+        
     }
     
     func didFailFetchingWeather(with error: any Error) {
@@ -149,7 +143,7 @@ extension WeatherView: WeatherViewModelDelegate {
 
 extension WeatherView: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        viewModel.fetchWeather(for: textField.text ?? "Konya")
+        viewModel.fetchWeather(city: textField.text)
         textField.text = ""
         view.endEditing(true)
         return true
@@ -160,19 +154,35 @@ extension WeatherView: UITextFieldDelegate {
 
 extension WeatherView: UICollectionViewDataSource, UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return weatherProperties.count
+        return viewModel.weatherProperties.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: WeatherPropertyCell.reuseID, for: indexPath) as! WeatherPropertyCell
-        let data = weatherProperties[indexPath.row]
-        cell.set(image: data.0, text: data.1)
-        DispatchQueue.main.async {
-            collectionView.reloadData()
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: WeatherPropertyCell.reuseID, for: indexPath) as? WeatherPropertyCell else {
+            return UICollectionViewCell()
         }
+        let data = viewModel.weatherProperties[indexPath.row]
+        cell.set(image: data.icon, text: data.description)
         return cell
         
     }
+    
+    
+}
+
+extension WeatherView: WeatherSearchViewDelegate {
+    
+    func didTapSearchButton(with query: String?) {
+        guard let city = query, !city.isEmpty else { return }
+        viewModel.fetchWeather(city: city)
+    }
+    
+    func didTapCurrentLocationButton() {
+        LocationManager.shared.getCurrentLocation { latitude, longitude in
+            self.viewModel.fetchWeather(latitude: "\(latitude)", longitude: "\(longitude)")
+        }
+    }
+    
     
     
 }
