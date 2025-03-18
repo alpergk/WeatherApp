@@ -15,7 +15,7 @@ protocol WeatherSearchViewDelegate: AnyObject {
 class WeatherSearchView: UIView {
     
     weak var delegate: WeatherSearchViewDelegate?
-    static let shared = NSCache<NSString, UIImage>()
+    static let imageCache = NSCache<NSString, UIImage>()
     
     
     override init(frame: CGRect) {
@@ -127,7 +127,7 @@ class WeatherSearchView: UIView {
         return stackView
     }()
     
-    
+  
     
     func setupUI() {
         
@@ -206,7 +206,8 @@ extension WeatherSearchView {
     func loadImage(from urlString: String, placeholder: UIImage? = nil) {
         self.weatherImageView.image = placeholder
         let cacheKey = NSString(string: urlString)
-        if let cachedImage = WeatherSearchView.shared.object(forKey: cacheKey) {
+        
+        if let cachedImage = WeatherSearchView.imageCache.object(forKey: cacheKey) {
             weatherImageView.image = cachedImage
             return
         }
@@ -215,10 +216,13 @@ extension WeatherSearchView {
         
         let task = URLSession.shared.dataTask(with: url) { data, response , error in
             guard let data = data, let downloadedImage = UIImage(data: data), error == nil else {
+                DispatchQueue.main.async {
+                    self.weatherImageView.image = UIImage(systemName: "exclamationmark.triangle")
+                }
                 return
             }
             
-            WeatherSearchView.shared.setObject(downloadedImage, forKey: urlString as NSString)
+            WeatherSearchView.imageCache.setObject(downloadedImage, forKey: urlString as NSString)
             
             DispatchQueue.main.async {
                 self.weatherImageView.image = downloadedImage
