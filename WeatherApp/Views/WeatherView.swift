@@ -10,28 +10,27 @@ import UIKit
 class WeatherView: UIViewController {
     
     
-    private let viewModel = WeatherViewModel()
-    private let searchView = WeatherSearchView()
+    private let viewModel: WeatherViewModel
+    private let searchView: WeatherSearchView
     
     
-    private var searchButton: UIButton {
-        return searchView.searchButton
+    init(viewModel: WeatherViewModel, searchView: WeatherSearchView) {
+        self.viewModel = viewModel
+        self.searchView = searchView
+        super.init(nibName: nil, bundle: nil)
     }
     
-    private var currentLocationButton: UIButton {
-        return searchView.currentLocationButton
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         viewModel.delegate = self
-        view.backgroundColor = .systemBackground
         searchView.delegate = self
         setupUI()
         createDismissKeyboardTapGesture()
-        
-        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -46,19 +45,10 @@ class WeatherView: UIViewController {
     
     
     
-    
-    @objc func didTapSearchButton() {
-        guard let city = searchView.searchField.text?.trimmingCharacters(in: .whitespaces), !city.isEmpty else {
-            print("Invalid Value Entered")
-            return
-        }
-        
-        viewModel.fetchWeather(city: city)
-        
-        searchView.searchField.text = ""
-        
-        view.endEditing(true)
-        
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Ok", style: .default))
+        self.present(alert, animated: true)
     }
     
     
@@ -92,28 +82,45 @@ class WeatherView: UIViewController {
         return collectionView
     }()
     
-    
     func setupUI() {
-        view.addSubview(searchView)
-        view.addSubview(collectionView)
+        setupBackground()
+        setupSearchView()
+        setupCollectionView()
+    }
+    
+    private func setupBackground() {
         searchView.backgroundColor = .systemCyan
         view.backgroundColor = .systemCyan
-        
+    }
+    
+    
+    private func setupSearchView() {
+        view.addSubview(searchView)
         searchView.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
             searchView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             searchView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             searchView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            searchView.heightAnchor.constraint(equalToConstant: 200),
-            
+            searchView.heightAnchor.constraint(equalToConstant: 200)
+        ])
+    }
+    
+    private func setupCollectionView() {
+        view.addSubview(collectionView)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: searchView.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             collectionView.heightAnchor.constraint(equalToConstant: 100)
-            
-            
         ])
     }
+    
+    
+    
+    
 }
 
 extension WeatherView: WeatherViewModelDelegate {
@@ -125,25 +132,28 @@ extension WeatherView: WeatherViewModelDelegate {
             
             if let iconName = weatherData.weather?.first?.icon {
                 let iconURL = "https://openweathermap.org/img/wn/\(iconName)@2x.png"
-                self.searchView.loadImage(from: iconURL, placeholder: UIImage(systemName: ""))
+                self.searchView.loadImage(from: iconURL, placeholder: UIImage(systemName: "exclamationmark.triangle"))
             }
-            
             self.searchView.getCurrentTemp(with: weatherData.main?.temp?.rounded(FloatingPointRoundingRule.toNearestOrAwayFromZero) ?? 0)
         }
-        
-        
     }
     
     func didFailFetchingWeather(with error: any Error) {
+        showAlert(title: "Invalid City Name", message: "Please enter a valid city name")
         print(error)
     }
-    
-    
 }
+
 
 extension WeatherView: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        viewModel.fetchWeather(city: textField.text)
+        
+        guard let city = textField.text?.trimmingCharacters(in: .whitespaces), !city.isEmpty else {
+            showAlert(title: "Invalid Input", message: "Please enter a valid city name")
+            return false
+        }
+        
+        viewModel.fetchWeather(city: city)
         textField.text = ""
         view.endEditing(true)
         return true
@@ -154,7 +164,7 @@ extension WeatherView: UITextFieldDelegate {
 
 extension WeatherView: UICollectionViewDataSource, UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.weatherProperties.count
+        return viewModel.weatherProperties.isEmpty ? 0 : viewModel.weatherProperties.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -173,7 +183,11 @@ extension WeatherView: UICollectionViewDataSource, UICollectionViewDelegate {
 extension WeatherView: WeatherSearchViewDelegate {
     
     func didTapSearchButton(with query: String?) {
-        guard let city = query, !city.isEmpty else { return }
+        guard let city = query?.trimmingCharacters(in: .whitespaces) , !city.isEmpty else {
+            showAlert(title: "Invalid Input", message: "Please Enter a valid city name")
+            return
+            
+        }
         viewModel.fetchWeather(city: city)
     }
     

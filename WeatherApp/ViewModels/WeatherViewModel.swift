@@ -8,16 +8,17 @@
 import UIKit
 import NetworkLayer
 
-let appId   = "ef6b401f3a917b4a419a9908342eeff1"
-let weatherApiConfig = WeatherAPIConfiguration()
-
 
 protocol WeatherViewModelDelegate: AnyObject {
     func didFetchWeatherSuccessfully()
     func didFailFetchingWeather(with error: Error)
 }
+
+
 @MainActor
-class WeatherViewModel {
+final class WeatherViewModel {
+    
+    
     
     weak var delegate: WeatherViewModelDelegate?
     private(set) var weather: WeatherResponse?
@@ -45,7 +46,10 @@ class WeatherViewModel {
     
     func fetchWeather(city: String? = nil, latitude: String? = nil, longitude: String? = nil) {
         Task {
+            //defer {self.dismissLLoadingIndicator }
             do {
+                //self.showLoadingIndicator()
+                
                 let weatherData: WeatherResponse
                 
                 if let city = city {
@@ -65,30 +69,26 @@ class WeatherViewModel {
             }
         }
     }
-    
-    
-    
-    
 }
 
 
 
 private func createWeatherEndpoint(for city : String) -> Endpoint {
     return Endpoint.customRequest(
-        config: weatherApiConfig,
+        config: Constants.weatherApiConfig,
         path: "/weather",
         method: .get,
-        parameters: ["q": city, "appid": appId, "units": "metric"],
+        parameters: ["q": city, "appid": Constants.appId, "units": "metric"],
         headers: [:]
     )
 }
 
 private func createWeatherCurrentLocationEndpoint(for lat: String, lon: String) -> Endpoint {
     return Endpoint.customRequest(
-        config: weatherApiConfig,
+        config: Constants.weatherApiConfig,
         path: "/weather",
         method: .get,
-        parameters: ["lat": lat, "lon": lon, "appid": appId, "units": "metric"],
+        parameters: ["lat": lat, "lon": lon, "appid": Constants.appId, "units": "metric"],
         headers: [:]
     )
 }

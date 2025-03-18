@@ -7,18 +7,28 @@
 
 import UIKit
 
-class AppCoordinator: Coordinator {
+class AppCoordinator: @preconcurrency Coordinator {
     
     var navigationController: UINavigationController
     var tabBarCoordinator: TabBarCoordinator?
+    
+  
+  
 
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
-        
+   
     }
-
-    func start() {
+    
+    @MainActor func start() {
         tabBarCoordinator = TabBarCoordinator(navigationController: navigationController)
         tabBarCoordinator?.start()
     }
+    
+  
+    
+
+    
+    
+    
 }
