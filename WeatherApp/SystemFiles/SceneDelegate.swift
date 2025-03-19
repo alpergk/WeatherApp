@@ -24,6 +24,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       
         appCoordinator = AppCoordinator(navigationController: navController)
         appCoordinator?.start()
+        
 
         
         // MARK: -  Code Base Implementation

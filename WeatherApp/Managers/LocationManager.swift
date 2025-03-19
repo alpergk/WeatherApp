@@ -20,10 +20,8 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     private var location: CLLocation? {
         didSet {
             guard let location else { return }
-            NotificationCenter.default.post(name: NSNotification.Name("LocationUpdated"), object: location)
             locationFetchHandler?(location)
             locationFetchHandler = nil
-            
         }
     }
     

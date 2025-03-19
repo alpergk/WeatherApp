@@ -12,23 +12,21 @@ class AppCoordinator: @preconcurrency Coordinator {
     var navigationController: UINavigationController
     var tabBarCoordinator: TabBarCoordinator?
     
-  
-  
-
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
-   
     }
     
     @MainActor func start() {
-        tabBarCoordinator = TabBarCoordinator(navigationController: navigationController)
+        let weatherViewModel = WeatherViewModel()
+//        let weatherSearchView = WeatherSearchView()
+        let mainView = MainView()
+        
+        tabBarCoordinator = TabBarCoordinator(
+            navigationController: navigationController,
+            mainViewModel: weatherViewModel,
+            /*weatherSearchView: weatherSearchView,*/ mainView: mainView
+        )
+        
         tabBarCoordinator?.start()
     }
-    
-  
-    
-
-    
-    
-    
 }
