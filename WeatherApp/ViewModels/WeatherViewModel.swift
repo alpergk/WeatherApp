@@ -32,37 +32,7 @@ final class WeatherViewModel {
     
     
     
-    
-    
-//    func fetchWeather(city: String? = nil, latitude: String? = nil, longitude: String? = nil) {
-//        Task {
-//            delegate?.didStartLoading()
-//            do {
-//                let weatherData: WeatherResponse
-//                
-//                if let city = city {
-//                    weatherData = try await NetworkManager.shared.request(endpoint: createWeatherEndpoint(for: city))
-//                } else if let lat = latitude, let lon = longitude {
-//                    weatherData = try await NetworkManager.shared.request(endpoint: createWeatherCurrentLocationEndpoint(for: lat, lon: lon))
-//                } else {
-//                    print("Error: Provide either a city or latitude & longitude")
-//                    return
-//                }
-//                
-//                self.weather = weatherData
-//                updateWeatherProperties()
-//                delegate?.didFetchWeatherSuccessfully(with: weatherProperties)
-//                
-//            } catch {
-//                delegate?.didFailFetchingWeather(with: error)
-//            }
-//            
-//            delegate?.didStopLoading()
-//        }
-//    }
-    
     func fetchWeather(city: String? = nil, latitude: String? = nil, longitude: String? = nil) {
-        // Validate input first
         if let city = city?.trimmingCharacters(in: .whitespaces), city.isEmpty {
             delegate?.didFailFetchingWeather(with: NSError(domain: "", code: 400, userInfo: [NSLocalizedDescriptionKey: "Please enter a valid city name."]))
             return
@@ -83,7 +53,7 @@ final class WeatherViewModel {
                 } else if let lat = latitude, let lon = longitude {
                     weatherData = try await NetworkManager.shared.request(endpoint: createWeatherCurrentLocationEndpoint(for: lat, lon: lon))
                 } else {
-                    return // This should never happen due to previous validation
+                    return 
                 }
                 
                 self.weather = weatherData

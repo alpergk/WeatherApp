@@ -11,41 +11,44 @@ import UIKit
 class TabBarCoordinator: @preconcurrency Coordinator {
     var navigationController: UINavigationController
     var tabBarController: UITabBarController
-    //var weatherViewModel: WeatherViewModel
-    //var weatherSearchView: WeatherSearchView
     var mainView : MainView
     var mainViewModel: WeatherViewModel
+    var detailView: DetailView
+    var detailViewModel: DetailViewModel
     
-    init(navigationController: UINavigationController, mainViewModel: WeatherViewModel, /*weatherSearchView: WeatherSearchView,*/ mainView: MainView) {
+    init(navigationController: UINavigationController, mainViewModel: WeatherViewModel,mainView: MainView, detailView: DetailView, detailViewModel: DetailViewModel) {
         self.navigationController = navigationController
         self.tabBarController = UITabBarController()
         self.mainViewModel = mainViewModel
-        //self.weatherSearchView = weatherSearchView
+        self.detailView = detailView
+        self.detailViewModel = detailViewModel
         self.mainView = mainView
     }
     
     @MainActor func start() {
-//        let homeScreenNC = createHomeScreenNC()
+
         let favScreenNC = createFavoriteScreenNC()
         let mainScreenNC = createMainScreenNC()
+        let detailScreenNC = createDetailScreenNC()
         mainScreenNC.navigationBar.prefersLargeTitles = true
-        tabBarController.viewControllers = [mainScreenNC,favScreenNC]
+        tabBarController.viewControllers = [mainScreenNC,detailScreenNC]
         tabBarController.tabBar.scrollEdgeAppearance = tabBarController.tabBar.standardAppearance
         navigationController.setViewControllers([tabBarController], animated: true)
     }
     
-//    @MainActor private func createHomeScreenNC() -> UINavigationController {
-//        let homeScreenVC = WeatherSearchViewController(viewModel: weatherViewModel, searchView: weatherSearchView)
-//        homeScreenVC.title = "Home"
-//        homeScreenVC.tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house"), selectedImage: UIImage(systemName: "house.fill"))
-//        return UINavigationController(rootViewController: homeScreenVC)
-//    }
     
     private func createFavoriteScreenNC() -> UINavigationController {
         let favScreenVC = FavoriteView()
         favScreenVC.title = "Favorites"
         favScreenVC.tabBarItem = UITabBarItem(title: "Favorites", image: UIImage(systemName: "star"), selectedImage: UIImage(systemName: "start.fill"))
         return UINavigationController(rootViewController: favScreenVC)
+    }
+    
+    private func createDetailScreenNC() -> UINavigationController {
+        let detailScreenVC = DetailViewController(detailView: detailView, detailViewModel: detailViewModel)
+        detailScreenVC.title = "xx"
+        detailScreenVC.tabBarItem = UITabBarItem(title: "xx", image: UIImage(systemName: "house"), selectedImage: UIImage(systemName: "house.fill"))
+        return UINavigationController(rootViewController: detailScreenVC)
     }
     
     private func createMainScreenNC() -> UINavigationController {

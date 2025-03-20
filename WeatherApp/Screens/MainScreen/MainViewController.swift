@@ -10,11 +10,11 @@ import UIKit
 class MainViewController: UIViewController {
     
     private let mainView: MainView
-    private let mainViewModel: WeatherViewModel
+    private let weatherViewModel: WeatherViewModel
     
     init(mainView: MainView, mainViewModel: WeatherViewModel) {
         self.mainView = mainView
-        self.mainViewModel = mainViewModel
+        self.weatherViewModel = mainViewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -28,11 +28,22 @@ class MainViewController: UIViewController {
         setupView()
         mainView.delegate = self
         mainView.searchTextField.delegate = self
-        mainViewModel.delegate = self
+        weatherViewModel.delegate = self
+        dismissKeyboardTapGesture()
         
     }
     
-    func setupView() {
+    private func dismissKeyboardTapGesture() {
+        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tapGestureRecognizer)
+    }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
+    
+    private func setupView() {
         view.addSubview(mainView)
         view.backgroundColor = .systemYellow
         mainView.translatesAutoresizingMaskIntoConstraints = false
@@ -50,20 +61,23 @@ class MainViewController: UIViewController {
 
 extension MainViewController: MainViewDelegate {
     func didTapSearchButton(with text: String) {
-        mainViewModel.fetchWeather(city: text)
+        weatherViewModel.fetchWeather(city: text)
+        mainView.searchTextField.text = ""
     }
     
     func didTapCurrentLocationButton() {
         LocationManager.shared.getCurrentLocation { [weak self] latitude, longitude in
             guard let self else { return }
-            self.mainViewModel.fetchWeather(latitude: "\(latitude)", longitude: "\(longitude)")
+            self.weatherViewModel.fetchWeather(latitude: "\(latitude)", longitude: "\(longitude)")
+            mainView.searchTextField.text = ""
         }
     }
 }
 
 extension MainViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        mainViewModel.fetchWeather(city: textField.text)
+        weatherViewModel.fetchWeather(city: textField.text)
+        textField.text = ""
         return true
     }
     
@@ -72,8 +86,15 @@ extension MainViewController: UITextFieldDelegate {
 
 extension MainViewController: WeatherViewModelDelegate {
     func didFetchWeatherSuccessfully(with properties: [WeatherProperty]) {
-        //update UI with properties
-        //print(properties)
+        if let weather = weatherViewModel.weather {
+            let detailVM = DetailViewModel(weather: weather)
+            let detailView = DetailView()
+            let detailVC = DetailViewController(detailView: detailView, detailViewModel: detailVM)
+            detailVC.updateData(with: properties)
+            navigationController?.pushViewController(detailVC, animated: true)
+           
+        }
+        
     }
     
     func didFailFetchingWeather(with error: any Error) {

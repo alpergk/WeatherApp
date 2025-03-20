@@ -18,13 +18,19 @@ class AppCoordinator: @preconcurrency Coordinator {
     
     @MainActor func start() {
         let weatherViewModel = WeatherViewModel()
-//        let weatherSearchView = WeatherSearchView()
+        
+        let detailViewModel = DetailViewModel()
+
         let mainView = MainView()
+        let detailView = DetailView()
         
         tabBarCoordinator = TabBarCoordinator(
             navigationController: navigationController,
             mainViewModel: weatherViewModel,
-            /*weatherSearchView: weatherSearchView,*/ mainView: mainView
+            mainView: mainView,
+            detailView: detailView,
+            detailViewModel: detailViewModel
+            
         )
         
         tabBarCoordinator?.start()
