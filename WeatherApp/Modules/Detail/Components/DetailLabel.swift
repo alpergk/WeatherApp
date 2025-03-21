@@ -19,9 +19,9 @@ class DetailLabel: UILabel {
     }
     
     convenience init(textAlignment: NSTextAlignment = .left,
-                     textColor: UIColor = .red,
+                     textColor: UIColor          = .red,
                      textStyle: UIFont.TextStyle = .body,
-                     customSize: CGFloat? = nil) {
+                     customSize: CGFloat?        = nil) {
         self.init(frame: .zero)
         self.translatesAutoresizingMaskIntoConstraints = false
         self.textAlignment = textAlignment
@@ -30,7 +30,7 @@ class DetailLabel: UILabel {
         let baseFont = UIFont.preferredFont(forTextStyle: textStyle)
         let fontToUse: UIFont
         
-        // If customSize is provided, override the font size.
+        
         if let size = customSize {
             let customFont = baseFont.withSize(size)
             fontToUse = UIFontMetrics(forTextStyle: textStyle).scaledFont(for: customFont)
@@ -45,7 +45,9 @@ class DetailLabel: UILabel {
         translatesAutoresizingMaskIntoConstraints = false
         adjustsFontSizeToFitWidth = true
         minimumScaleFactor        = 0.75
+        numberOfLines             = 0
         lineBreakMode             = .byWordWrapping
+        
         
         
         

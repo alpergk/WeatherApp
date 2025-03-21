@@ -19,6 +19,9 @@ class DetailViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupDataSource()
+        updateData(with: detailViewModel.weatherProperties)
+        updateDataOnView(with: detailViewModel.weather!)
+        view.backgroundColor = .systemBackground
         
         
     }
@@ -29,15 +32,6 @@ class DetailViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(true, animated: true)
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: true)
-    }
     
     @available(*, unavailable)
     required init?(coder: NSCoder) {
@@ -67,6 +61,24 @@ class DetailViewController: UIViewController {
         DispatchQueue.main.async {
             self.dataSource.apply(snapshot, animatingDifferences: true)
         }
+    }
+    
+    func updateDataOnView(with weather: WeatherResponse) {
+        detailView.cityNameLabel.text      = weather.name
+        
+        if let temp = weather.main?.temp {
+            detailView.temperatureLabel.text = String(format: "%.0f°", temp)
+        } else {
+            detailView.temperatureLabel.text = "N/A"
+        }
+        
+        if let dt = weather.dt, let tz = weather.timezone {
+            detailView.dateLabel.text = "Today: \(Date.formattedDate(from: dt, timezoneOffset: tz, format: DateFormatStyle.fullDate.formatString))"
+        } else {
+            detailView.dateLabel.text = "N/A"
+        }
+        
+        
     }
     
     

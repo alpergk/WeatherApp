@@ -7,32 +7,37 @@
 
 import UIKit
 
-class AppCoordinator: @preconcurrency Coordinator {
+class AppCoordinator: @preconcurrency Coordinator, MainCoordinatorDelegate {
     
     var navigationController: UINavigationController
-    var tabBarCoordinator: TabBarCoordinator?
     
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
     }
     
     @MainActor func start() {
+     
         let weatherViewModel = WeatherViewModel()
+        weatherViewModel.coordinatorDelegate = self
+     
+        let mainView         = MainView()
+        let mainVC           = MainViewController(mainView: mainView, mainViewModel: weatherViewModel)
+        mainVC.title         = "Weather App"
         
-        let detailViewModel = DetailViewModel()
-
-        let mainView = MainView()
-        let detailView = DetailView()
+        navigationController.isNavigationBarHidden = false
+        navigationController.setViewControllers([mainVC], animated: false)
+       
+    }
+    
+    // MARK: - MainCoordinatorDelegate
+    func didSelectWeatherData(_ weather: WeatherResponse) {
+       
+        let detailViewModel = DetailViewModel(weather: weather)
+        let detailView      = DetailView()
+        let detailVC        = DetailViewController(detailView: detailView, detailViewModel: detailViewModel)
         
-        tabBarCoordinator = TabBarCoordinator(
-            navigationController: navigationController,
-            mainViewModel: weatherViewModel,
-            mainView: mainView,
-            detailView: detailView,
-            detailViewModel: detailViewModel
-            
-        )
         
-        tabBarCoordinator?.start()
+        
+        navigationController.pushViewController(detailVC, animated: true)
     }
 }

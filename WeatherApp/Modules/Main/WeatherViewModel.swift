@@ -23,11 +23,10 @@ final class WeatherViewModel {
     
     
     weak var delegate: WeatherViewModelDelegate?
+    weak var coordinatorDelegate: MainCoordinatorDelegate?
     private(set) var weather: WeatherResponse?
-    
-    
-    
     var weatherProperties: [WeatherProperty] = []
+    
     
     
     
@@ -45,9 +44,9 @@ final class WeatherViewModel {
         
         Task {
             delegate?.didStartLoading()
+            defer { delegate?.didStopLoading() }
             do {
                 let weatherData: WeatherResponse
-                
                 if let city = city {
                     weatherData = try await NetworkManager.shared.request(endpoint: createWeatherEndpoint(for: city))
                 } else if let lat = latitude, let lon = longitude {
@@ -57,8 +56,10 @@ final class WeatherViewModel {
                 }
                 
                 self.weather = weatherData
+                
                 updateWeatherProperties()
                 delegate?.didFetchWeatherSuccessfully(with: weatherProperties)
+                coordinatorDelegate?.didSelectWeatherData(weatherData)
                 
             } catch {
                 let errorMessage: String
@@ -73,8 +74,6 @@ final class WeatherViewModel {
                 
                 delegate?.didFailFetchingWeather(with: userFriendlyError)
             }
-            
-            delegate?.didStopLoading()
         }
     }
 

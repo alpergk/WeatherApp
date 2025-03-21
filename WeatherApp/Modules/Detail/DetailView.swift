@@ -48,16 +48,18 @@ class DetailView: UIView {
     let bottomCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.minimumLineSpacing = 10
-        layout.minimumInteritemSpacing = 10
-        layout.itemSize = CGSize(width: 80, height: 80)
+        layout.minimumLineSpacing = 20
+        layout.minimumInteritemSpacing = 20
+        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+        //layout.itemSize = CGSize(width: 120, height: 100)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-//        collectionView.showsHorizontalScrollIndicator = false
+        collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
         collectionView.register(DetailPropertyCell.self, forCellWithReuseIdentifier: DetailPropertyCell.reuseID)
         return collectionView
     }()
+    
     
     func setupUI() {
         temperatureLabel.text = "18 oC"
@@ -79,7 +81,7 @@ class DetailView: UIView {
             topWeatherImageView.heightAnchor.constraint(equalToConstant: 44),
             topWeatherImageView.widthAnchor.constraint(equalToConstant: 44),
             
-            bottomCollectionView.topAnchor.constraint(equalTo: topStackView.bottomAnchor, constant: 10),
+            bottomCollectionView.topAnchor.constraint(equalTo: topStackView.bottomAnchor, constant: 150),
             bottomCollectionView.leadingAnchor.constraint(equalTo: leadingAnchor,constant: 20),
             bottomCollectionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             bottomCollectionView.heightAnchor.constraint(equalToConstant: 100)
