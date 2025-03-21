@@ -13,7 +13,7 @@ import UIKit
 final class LocationManager: NSObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     
-    static let shared = LocationManager()
+    static let shared   = LocationManager()
     
     private var locationFetchHandler: ((CLLocation) -> Void)?
     
@@ -48,7 +48,7 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     // MARK: - Handle Location Updates
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.first else { return }
-        self.location = location
+        self.location      = location
         manager.stopUpdatingLocation()
     }
     

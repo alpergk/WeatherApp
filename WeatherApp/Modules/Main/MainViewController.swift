@@ -11,6 +11,7 @@ class MainViewController: UIViewController {
     
     private let mainView: MainView
     private let weatherViewModel: WeatherViewModel
+    private let loadingView =  LoadingView()
     
     init(mainView: MainView, mainViewModel: WeatherViewModel) {
         self.mainView = mainView
@@ -45,7 +46,7 @@ class MainViewController: UIViewController {
     
     private func setupView() {
         view.addSubview(mainView)
-        view.backgroundColor = .systemYellow
+        view.backgroundColor = .systemBackground
         mainView.translatesAutoresizingMaskIntoConstraints = false
         mainView.pinToEdges(of: view)
     }
@@ -63,6 +64,7 @@ extension MainViewController: MainViewDelegate {
     func didTapSearchButton(with text: String) {
         weatherViewModel.fetchWeather(city: text)
         mainView.searchTextField.text = ""
+        dismissKeyboard()
     }
     
     func didTapCurrentLocationButton() {
@@ -78,6 +80,7 @@ extension MainViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         weatherViewModel.fetchWeather(city: textField.text)
         textField.text = ""
+        dismissKeyboard()
         return true
     }
     
@@ -86,15 +89,7 @@ extension MainViewController: UITextFieldDelegate {
 
 extension MainViewController: WeatherViewModelDelegate {
     func didFetchWeatherSuccessfully(with properties: [WeatherProperty]) {
-        if let weather = weatherViewModel.weather {
-            let detailVM = DetailViewModel(weather: weather)
-            let detailView = DetailView()
-            let detailVC = DetailViewController(detailView: detailView, detailViewModel: detailVM)
-            detailVC.updateData(with: properties)
-            navigationController?.pushViewController(detailVC, animated: true)
-           
-        }
-        
+        //Main view controller can update its own UI. Currently this is not needed here it seems.
     }
     
     func didFailFetchingWeather(with error: any Error) {
@@ -102,11 +97,11 @@ extension MainViewController: WeatherViewModelDelegate {
     }
     
     func didStartLoading() {
-        //show loading indicator
+        loadingView.show(in: view)
     }
     
     func didStopLoading() {
-        //hide loading indicator
+        loadingView.hide()
     }
     
     

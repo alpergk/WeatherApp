@@ -43,20 +43,19 @@ class DetailPropertyCell: UICollectionViewCell {
         contentView.addSubview(propertyImageView)
         contentView.addSubview(propertyDetailsLabel)
         
-        
-        
         NSLayoutConstraint.activate([
-            propertyImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            propertyImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             propertyImageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             propertyImageView.widthAnchor.constraint(equalToConstant: 40),
             propertyImageView.heightAnchor.constraint(equalToConstant: 40),
             
-            propertyDetailsLabel.topAnchor.constraint(equalTo: propertyImageView.bottomAnchor, constant: 5),
-            propertyDetailsLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            propertyDetailsLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            propertyDetailsLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+            propertyDetailsLabel.topAnchor.constraint(equalTo: propertyImageView.bottomAnchor, constant: 8),
+            propertyDetailsLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
+            propertyDetailsLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
+            propertyDetailsLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
         ])
-        
+        propertyDetailsLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        propertyDetailsLabel.setContentHuggingPriority(.required, for: .horizontal)
     }
     
     
