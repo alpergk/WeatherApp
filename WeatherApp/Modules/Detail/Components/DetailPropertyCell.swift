@@ -29,6 +29,7 @@ class DetailPropertyCell: UICollectionViewCell {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
         imageView.layer.cornerRadius = 10
+        imageView.layer.borderWidth = 1
         imageView.clipsToBounds = true
         return imageView
     }()

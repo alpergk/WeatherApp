@@ -59,15 +59,24 @@ class DetailViewController: UIViewController {
         snapshot.appendSections([.main])
         snapshot.appendItems(properties)
         DispatchQueue.main.async {
-            self.dataSource.apply(snapshot, animatingDifferences: true)
+       
+            self.dataSource.apply(snapshot, animatingDifferences: false)
+//            self.dataSource.applySnapshotUsingReloadData(snapshot)
         }
     }
     
     func updateDataOnView(with weather: WeatherResponse) {
         detailView.cityNameLabel.text      = weather.name
+        Task {
+            let image = await detailViewModel.fetchImage()
+            DispatchQueue.main.async {
+                self.detailView.topWeatherImageView.image = image
+            }
+        }
         
         if let temp = weather.main?.temp {
             detailView.temperatureLabel.text = String(format: "%.0f°", temp)
+         
         } else {
             detailView.temperatureLabel.text = "N/A"
         }

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import NetworkLayer
 
 class DetailViewModel {
     public var weather: WeatherResponse?
@@ -35,5 +36,23 @@ class DetailViewModel {
             ]
         }
     }
+    
+    
+    //https://openweathermap.org/img/wn/13d@2x.png
+    //13d@2x.png
+    
+    public func fetchImage() async -> UIImage {
+        guard let iconCode = weather?.weather?[0].icon else {
+            return UIImage()
+        }
+        
+        let weatherImage = await ImageDownloadManager.shared.downloadImage(for: iconCode)
+        return weatherImage
+    }
+    
+
+    
+    
+    
     
 }

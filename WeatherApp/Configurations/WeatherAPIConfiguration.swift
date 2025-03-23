@@ -14,4 +14,3 @@ struct WeatherAPIConfiguration: APIConfiguration {
     var defaultHeaders:[String: String]? = ["Content-Type": "application/json"]
 }
 
-

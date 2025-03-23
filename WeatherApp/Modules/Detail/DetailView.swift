@@ -29,7 +29,7 @@ class DetailView: UIView {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(systemName: "sun.min.fill")
+        imageView.image = UIImage(systemName: "questionmark.app.fill")
         return imageView
     }()
     
@@ -78,8 +78,8 @@ class DetailView: UIView {
             topStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             topStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             
-            topWeatherImageView.heightAnchor.constraint(equalToConstant: 44),
-            topWeatherImageView.widthAnchor.constraint(equalToConstant: 44),
+            topWeatherImageView.heightAnchor.constraint(equalToConstant: 128),
+            topWeatherImageView.widthAnchor.constraint(equalToConstant: 128),
             
             bottomCollectionView.topAnchor.constraint(equalTo: topStackView.bottomAnchor, constant: 150),
             bottomCollectionView.leadingAnchor.constraint(equalTo: leadingAnchor,constant: 20),

@@ -88,6 +88,8 @@ extension MainViewController: UITextFieldDelegate {
 }
 
 extension MainViewController: WeatherViewModelDelegate {
+    
+    // FIXME: -  Check this out later, there might be an issue about the design of viewmodels ??
     func didFetchWeatherSuccessfully(with properties: [WeatherProperty]) {
         //Main view controller can update its own UI. Currently this is not needed here it seems.
     }
