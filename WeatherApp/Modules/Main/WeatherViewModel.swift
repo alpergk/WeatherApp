@@ -26,6 +26,12 @@ final class WeatherViewModel {
     weak var coordinatorDelegate: MainCoordinatorDelegate?
     private(set) var weather: WeatherResponse?
     var weatherProperties: [WeatherProperty] = []
+    private let config = WeatherAPIConfiguration()
+    private let networkManager: NetworkManager
+    
+    init(networkManager: NetworkManager = NetworkManager(config: WeatherAPIConfiguration())) {
+        self.networkManager = networkManager
+    }
     
     
     
@@ -33,7 +39,7 @@ final class WeatherViewModel {
     
     func fetchWeather(city: String? = nil, latitude: String? = nil, longitude: String? = nil) {
         if let city = city?.trimmingCharacters(in: .whitespaces), city.isEmpty {
-            delegate?.didFailFetchingWeather(with: NSError(domain: "", code: 400, userInfo: [NSLocalizedDescriptionKey: "Please enter a valid city name."]))
+            delegate?.didFailFetchingWeather(with: NSError(domain: "", code: 400, userInfo: [NSLocalizedDescriptionKey: "Please enter a valid city name, you cannot leave it empty."]))
             return
         }
         
@@ -48,11 +54,11 @@ final class WeatherViewModel {
             do {
                 let weatherData: WeatherResponse
                 if let city = city {
-                    weatherData = try await NetworkManager.shared.request(endpoint: createWeatherEndpoint(for: city))
+                    weatherData = try await networkManager.request(CityWeatherEndpoint(city: city))
                 } else if let lat = latitude, let lon = longitude {
-                    weatherData = try await NetworkManager.shared.request(endpoint: createWeatherCurrentLocationEndpoint(for: lat, lon: lon))
+                    weatherData = try await networkManager.request(CoordinateWeatherEndpoint(lat: lat, lon: lon))
                 } else {
-                    return 
+                    return
                 }
                 
                 self.weather = weatherData
@@ -61,22 +67,40 @@ final class WeatherViewModel {
                 delegate?.didFetchWeatherSuccessfully(with: weatherProperties)
                 coordinatorDelegate?.didSelectWeatherData(weatherData)
                 
+            } catch let error as NetworkError {
+                handleNetworkError(error)
             } catch {
-                let errorMessage: String
-                if error.localizedDescription.lowercased().contains("the operation") {
-                    errorMessage = "City not found. Please enter a valid city name."
-                } else {
-                    errorMessage = error.localizedDescription
-                }
-                
-                let userFriendlyError = NSError(domain: "", code: 400, userInfo: [NSLocalizedDescriptionKey: errorMessage])
-                
-                
-                delegate?.didFailFetchingWeather(with: userFriendlyError)
+                delegate?.didFailFetchingWeather(with: error)
             }
         }
     }
-
+    
+    private func handleNetworkError(_ error: NetworkError) {
+        let errorMessage: String
+        
+        switch error {
+        case .invalidURL:
+            errorMessage = "Invalid request URL"
+        case .statusCode(let code):
+            errorMessage = "Invalid city name or server error"
+            print("\(code)")
+        case .decodingFailed:
+            errorMessage = "Failed to parse weather data"
+        case .noData:
+            errorMessage = "No weather data received"
+        default:
+            errorMessage = "Failed to fetch weather"
+        }
+        
+        let userError = NSError(
+            domain: "",
+            code: 400,
+            userInfo: [NSLocalizedDescriptionKey: errorMessage]
+        )
+        
+        delegate?.didFailFetchingWeather(with: userError)
+    }
+    
     
     
     
@@ -103,25 +127,10 @@ final class WeatherViewModel {
 
 
 
-private func createWeatherEndpoint(for city : String) -> Endpoint {
-    return Endpoint.customRequest(
-        config: Constants.weatherApiConfig,
-        path: "/weather",
-        method: .get,
-        parameters: ["q": city, "appid": Constants.appId, "units": "metric"],
-        headers: [:]
-    )
-}
 
-private func createWeatherCurrentLocationEndpoint(for lat: String, lon: String) -> Endpoint {
-    return Endpoint.customRequest(
-        config: Constants.weatherApiConfig,
-        path: "/weather",
-        method: .get,
-        parameters: ["lat": lat, "lon": lon, "appid": Constants.appId, "units": "metric"],
-        headers: [:]
-    )
-}
+
+
+
 
 
 
