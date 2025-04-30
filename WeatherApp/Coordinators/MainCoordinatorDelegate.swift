@@ -9,5 +9,5 @@
 import UIKit
 
 protocol MainCoordinatorDelegate: AnyObject {
-    func didSelectWeatherData(_ weather: WeatherResponse)
+    @MainActor func didSelectWeatherData(_ weather: WeatherResponse)
 }

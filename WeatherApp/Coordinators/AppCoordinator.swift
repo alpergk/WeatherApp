@@ -7,7 +7,8 @@
 
 import UIKit
 
-class AppCoordinator: @preconcurrency Coordinator, MainCoordinatorDelegate {
+@MainActor
+final class AppCoordinator:  Coordinator,  MainCoordinatorDelegate {
     
     var navigationController: UINavigationController
     
@@ -15,23 +16,23 @@ class AppCoordinator: @preconcurrency Coordinator, MainCoordinatorDelegate {
         self.navigationController = navigationController
     }
     
-    @MainActor func start() {
-     
+    func start() {
+        
         let weatherViewModel = WeatherViewModel()
         weatherViewModel.coordinatorDelegate = self
-     
+        
         let mainView         = MainView()
         let mainVC           = MainViewController(mainView: mainView, mainViewModel: weatherViewModel)
         mainVC.title         = "Weather App"
         
         navigationController.isNavigationBarHidden = false
         navigationController.setViewControllers([mainVC], animated: false)
-       
+        
     }
     
     // MARK: - MainCoordinatorDelegate
     func didSelectWeatherData(_ weather: WeatherResponse) {
-       
+        
         let detailViewModel = DetailViewModel(weather: weather)
         let detailView      = DetailView()
         let detailVC        = DetailViewController(detailView: detailView, detailViewModel: detailViewModel)
